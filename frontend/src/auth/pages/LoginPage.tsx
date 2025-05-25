@@ -1,4 +1,4 @@
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -7,13 +7,40 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 import ImagenLogin from "@/assets/placeholder.svg"
+import { useState } from "react"
 
-export function LoginPage({ className, ...props }: React.ComponentProps<"div">) {
+import axios from 'axios'
+
+export function LoginPage({ className, ...props }: React.ComponentProps<"div">, ) {
+  const navigate = useNavigate();
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    try {
+      console.log(email, password);
+      const response = await axios.post("http://localhost:8880/api/login", {
+        Usuario: email,
+        Contraseña: password
+      }, {
+        withCredentials: true  // 🔥 Enviar credenciales (cookies)
+      })
+      console.log(response.data.message)
+      if(response.data.message==="Bienvenido"){
+        navigate('/', {replace: true});
+      }
+    } catch (error) {
+      console.error("Error al iniciar sesión", error);
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form onSubmit={handleLogin} className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Bienvenido</h1>
@@ -21,7 +48,7 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">) 
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Usuario o correo</Label>
-                <Input id="email" type="email" required />
+                <Input id="email" type="text" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -30,7 +57,7 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">) 
                     Olvidaste tu contraseña?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
               <Button type="submit" className="w-full">
                 Login
