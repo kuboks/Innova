@@ -8,6 +8,7 @@ import {
 
 export const postLogin= async (req, res) => {
     try {
+        console.log(req.body)
         const validacion= await validarLogin(req.body)
 
         if(validacion.error){
@@ -74,6 +75,7 @@ export const postNewUser= async (req, res) =>{
 
 export const authSession= (req,res) =>{
     const token = req.cookies.token;
+
     if (!token) return res.status(401).json({ error: "No autenticado" });
 
     jwt.verify(token, process.env.CLAVEWT, (err, decoded) => {

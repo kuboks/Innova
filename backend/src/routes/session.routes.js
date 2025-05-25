@@ -10,7 +10,7 @@ import {
 
 } from '../controllers/session.controller.js';
 
-loginRoutes.get('/login', postLogin);
+loginRoutes.post('/login', postLogin);
 
 loginRoutes.post('/signup', postNewUser);
 
