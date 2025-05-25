@@ -6,9 +6,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useNavigate } from "react-router"
 
-export function HeaderComponent() {
+interface HeaderComponentProps {
+  setSearchQuery: (query: string) => void;
+}
+
+
+export function HeaderComponent({ setSearchQuery }: HeaderComponentProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
   const navigate = useNavigate();
 
   const handleLogin = () => {
@@ -39,7 +43,7 @@ export function HeaderComponent() {
             <Input
               type="search"
               placeholder="Search videos..."
-              value={searchQuery}
+              // value={setSearchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full"
             />

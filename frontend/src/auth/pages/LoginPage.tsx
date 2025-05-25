@@ -10,17 +10,27 @@ import ImagenLogin from "@/assets/placeholder.svg"
 import { useState } from "react"
 
 import axios from 'axios'
+import ReCAPTCHA from "react-google-recaptcha"
 
 export function LoginPage({ className, ...props }: React.ComponentProps<"div">, ) {
   const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
+  const apiKey = import.meta.env.VITE_KEY_CAPTCHA;
+  console.log(apiKey)
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token)
+  }
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
+    if (!recaptchaToken) {
+      alert("Por favor, completa el reCAPTCHA antes de registrar tu cuenta.");
+      return;
+    }
     try {
-      console.log(email, password);
       const response = await axios.post("http://localhost:8880/api/login", {
         Usuario: email,
         Contraseña: password
@@ -28,7 +38,7 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
         withCredentials: true  // 🔥 Enviar credenciales (cookies)
       })
       console.log(response.data.message)
-      if(response.data.message==="Bienvenido"){
+      if(response.data.success){
         navigate('/', {replace: true});
       }
     } catch (error) {
@@ -58,6 +68,14 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
                   </a>
                 </div>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              </div>
+              <div className="flex justify-center py-4">
+                <ReCAPTCHA
+                  sitekey={apiKey}
+                  onChange={handleRecaptchaChange}
+                  onExpired={() => setRecaptchaToken(null)}
+                  onError={() => setRecaptchaToken(null)}
+                />
               </div>
               <Button type="submit" className="w-full">
                 Login

@@ -9,7 +9,6 @@ import axios from 'axios'
 
 export const AppRouter = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     console.log('Session activa',user);
@@ -23,9 +22,7 @@ export const AppRouter = () => {
         console.error("No hay sesión activa", error);
         setUser(null);
       }
-      setLoading(false);
     };
-
     checkSession();
   }, []);
 
