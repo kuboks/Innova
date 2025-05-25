@@ -1,25 +1,35 @@
-import { useState } from "react"
-import { Search, Menu, Home, Heart, LogIn, LogOut, User } from "lucide-react"
+import { Search, Menu, Home, Heart, LogIn, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useNavigate } from "react-router"
+import axios from "axios"
 
 interface HeaderComponentProps {
   setSearchQuery: (query: string) => void;
 }
-
-
 export function HeaderComponent({ setSearchQuery }: HeaderComponentProps) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const navigate = useNavigate();
 
   const handleLogin = () => {
     navigate('/auth', {replace: true});
-    setIsLoggedIn(!isLoggedIn)
   }
 
+  const handleLogout = async() => {
+    try {
+        const response = await axios.post("http://localhost:8880/api/logout",{}, { withCredentials: true });
+        console.log(response.data)
+        if(response.data.success){
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = '/';
+        }
+        console.log("No hice nada")
+      } catch (error) {
+        console.error("No hay sesión activa Header", error);
+      }
+  }
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
       <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
@@ -65,15 +75,15 @@ export function HeaderComponent({ setSearchQuery }: HeaderComponentProps) {
           </div>
 
           {/* User Section */}
-          {isLoggedIn ? (
+          {localStorage.getItem('usuario') ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 px-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/placeholder-user.jpg" />
-                    <AvatarFallback>JD</AvatarFallback>
+                    <AvatarFallback>{localStorage.getItem('usuario')?.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:block">John Doe</span>
+                  <span className="hidden sm:block">{localStorage.getItem('usuario')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -85,11 +95,7 @@ export function HeaderComponent({ setSearchQuery }: HeaderComponentProps) {
                   <Heart className="h-4 w-4 mr-2" />
                   Favorites
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogin}>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>

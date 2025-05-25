@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router"
+import { Link } from "react-router"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -13,13 +13,11 @@ import axios from 'axios'
 import ReCAPTCHA from "react-google-recaptcha"
 
 export function LoginPage({ className, ...props }: React.ComponentProps<"div">, ) {
-  const navigate = useNavigate();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
   const apiKey = import.meta.env.VITE_KEY_CAPTCHA;
-  console.log(apiKey)
   const handleRecaptchaChange = (token: string | null) => {
     setRecaptchaToken(token)
   }
@@ -32,14 +30,14 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
     }
     try {
       const response = await axios.post("http://localhost:8880/api/login", {
-        Usuario: email,
+        NombreUsuario: email,
         Contraseña: password
       }, {
-        withCredentials: true  // 🔥 Enviar credenciales (cookies)
+        withCredentials: true
       })
       console.log(response.data.message)
       if(response.data.success){
-        navigate('/', {replace: true});
+        window.location.href = '/';
       }
     } catch (error) {
       console.error("Error al iniciar sesión", error);

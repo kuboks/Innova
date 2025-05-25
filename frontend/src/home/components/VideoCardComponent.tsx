@@ -6,16 +6,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
-import Image from "@/assets/placeholder.svg"
-
 interface Video {
-  id: string
-  title: string
-  channel: string
-  views: string
-  timestamp: string
-  thumbnail: string
-  duration: string
+  videoId: string;
+  publishedAt: string;
+  channelId: string;
+  title: string;
+  description: string;
+  thumbnailDefault: string;
+  thumbnailMedium: string;
+  thumbnailHigh: string;
+  channelTitle: string;
+  liveBroadcastContent: string;
+  publishTime: string;
 }
 
 interface VideoCardProps {
@@ -31,7 +33,7 @@ export function VideoCardComponent({ video }: VideoCardProps) {
   }
 
   const handleVideoClick = () => {
-    alert(`🎬 Video: ${video.title}\n📺 Canal: ${video.channel}\n👀 Vistas: ${video.views}\n⏰ ${video.timestamp}`)
+    alert(`🎬 Video: ${video.title}\n📺 Canal: ${video.channelId}`)
   }
 
   return (
@@ -39,12 +41,12 @@ export function VideoCardComponent({ video }: VideoCardProps) {
       <CardContent className="p-0" onClick={handleVideoClick}>
         {/* Thumbnail */}
         <div className="relative aspect-video group">
-          <img src={Image} alt={video.title} className="object-cover" />
+          <img src={video.thumbnailHigh} alt={video.title} className="object-cover" />
 
           {/* Duration Badge */}
-          <div className="absolute bottom-2 right-2 bg-red/80 text-white text-xs px-1.5 py-0.5 rounded">
+          {/* <div className="absolute bottom-2 right-2 bg-red/80 text-white text-xs px-1.5 py-0.5 rounded">
             {video.duration}
-          </div>
+          </div> */}
 
           {/* Favorite Button */}
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -64,7 +66,7 @@ export function VideoCardComponent({ video }: VideoCardProps) {
           <div className="flex gap-3">
             <Avatar className="h-9 w-9 flex-shrink-0">
               <AvatarImage src="/placeholder-user.jpg" />
-              <AvatarFallback>{video.channel.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{video.channelId.charAt(0)}</AvatarFallback>
             </Avatar>
 
             <div className="flex-1 min-w-0">
@@ -82,11 +84,8 @@ export function VideoCardComponent({ video }: VideoCardProps) {
                   />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mb-1">{video.channel}</p>
+              <p className="text-xs text-muted-foreground mb-1">{video.channelTitle}</p>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <span>{video.views}</span>
-                <span>•</span>
-                <span>{video.timestamp}</span>
               </div>
             </div>
           </div>
