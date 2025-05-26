@@ -24,13 +24,9 @@ const newUserSchema= zod.object({
 })
 
 const loginSchema= zod.object({
-    NombreUsuario: zod.string({
-        invalid_type_error: 'El nombre de usuario no es valido',
-        required_error: 'El nombre de usuqrio es requerido'
-    }),
-    Email: zod.string({
-        invalid_type_error: 'No es un correo valido',
-        required_error: 'El correo es requerido'
+    UsuarioEmail: zod.string({
+        invalid_type_error: 'El usuario o email no  valido',
+        required_error: 'El usuario o email es requerido'
     }),
     Contraseña: zod.string({
         invalid_type_error: 'Constraseña no valida',
