@@ -1,6 +1,8 @@
 import { getConnection } from '../database/connection.js'
 import mssql from 'mssql'
 import jwt from 'jsonwebtoken'
+import mailer from 'nodemailer'
+import crypto from 'crypto'
 import {
     validarLogin,
     validarNewUser
@@ -20,8 +22,8 @@ export const postLogin = async (req, res) => {
 
         const pool = await getConnection();
         let result=null;
-        const password = req.body.Contraseña;
-        const usuarioEmail= req.body.UsuarioEmail
+        const password = crypto.createHash('sha256').update(req.body.Contraseña).digest('hex');
+        const usuarioEmail= req.body.UsuarioEmail;
 
         if(regex.test(usuarioEmail)){
             result = await pool.request()
@@ -67,6 +69,7 @@ export const postNewUser = async (req, res) => {
             const mensaje = JSON.parse(validacion.error.message)
             return res.status(400).json(mensajeRes(false, mensaje[0].message, null, null))
         }
+        const password= crypto.createHash('sha256').update(req.body.Contraseña).digest('hex')
 
         const pool = await getConnection();
         const checkUser = await pool.request()
@@ -84,7 +87,7 @@ export const postNewUser = async (req, res) => {
             .input('Apellidos', mssql.VarChar, req.body.Apellidos)
             .input('NombreUsuario', mssql.VarChar, req.body.NombreUsuario)
             .input('Email', mssql.VarChar, req.body.Email)
-            .input('Password', mssql.VarChar, req.body.Contraseña)
+            .input('Password', mssql.VarChar, password)
             .query('INSERT INTO Usuarios (nombre, apellido, nombre_usuario, correo, contraseña)VALUES(@Nombre, @Apellidos, @NombreUsuario, @Email, @Password)');
 
         if (result.rowsAffected) {
@@ -129,6 +132,23 @@ export const logout = (req, res) => {
         }
         res.clearCookie("token", {path: '/'});
         return res.json(mensajeRes(true, 'Sesión cerrada exitosamente', null, null))
+    } catch (error) {
+        const statusCode = error.response ? error.response.status : 500;
+        return res.status(statusCode).json(mensajeRes(false, 'Error al cerrar sesion', null, error.message))
+    }
+}
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const pool = await getConnection();
+        result = await pool.request()
+            .input('Email', mssql.VarChar, req.body.Email)
+            .query('SELECT correo FROM Usuarios WHERE correo= @Email');
+        if(result.rowsAffected[0] === 0){
+            return res.json(mensajeRes(true, 'Correo enviado', result.recordset, null))
+        }
+
+        
     } catch (error) {
         const statusCode = error.response ? error.response.status : 500;
         return res.status(statusCode).json(mensajeRes(false, 'Error al cerrar sesion', null, error.message))

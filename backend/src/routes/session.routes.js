@@ -18,6 +18,8 @@ loginRoutes.get("/session", authSession);
 
 loginRoutes.post("/logout", logout);
 
+loginRoutes.post("/forgot-password", );
+
 
 
 export default loginRoutes
