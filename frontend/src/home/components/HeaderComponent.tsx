@@ -20,13 +20,11 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
   const handleLogout = async() => {
     try {
         const response = await axios.post(import.meta.env.VITE_URL_API_LOGOUT,{}, { withCredentials: true });
-        console.log(response.data)
         if(response.data.success){
           localStorage.clear();
           sessionStorage.clear();
           window.location.href = '/';
         }
-        console.log("No hice nada")
       } catch (error) {
         console.error("No hay sesión activa Header", error);
       }
@@ -34,7 +32,7 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
       <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
-        {/* Left section - Menu and Logo */}
+        {/* Seccion izquierda - Menu y Logo */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-5 w-5" />
@@ -47,7 +45,7 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
           </div>
         </div>
 
-        {/* Center section - Search */}
+        {/* Seccion central - Barra de busqueda */}
         <div className="flex-1 max-w-2xl mx-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -61,21 +59,20 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
           </div>
         </div>
 
-        {/* Right section - Navigation and User */}
+        {/* Seccion derecha - Navegacion y usuario */}
         <div className="flex items-center gap-2">
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm">
               <Home className="h-4 w-4 mr-2" />
-              Home
+              <span className="hidden sm:inline">Home</span>
             </Button>
             <Button variant="ghost" size="sm">
               <Heart className="h-4 w-4 mr-2" />
-              Favorites
+              <span className="hidden sm:inline">Favoritos</span>
             </Button>
           </div>
 
-          {/* User Section */}
+          {/* Seccion de usuario */}
           {localStorage.getItem('usuario') ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -88,14 +85,6 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem className="md:hidden">
-                  <Home className="h-4 w-4 mr-2" />
-                  Home
-                </DropdownMenuItem>
-                <DropdownMenuItem className="md:hidden">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Favorites
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out

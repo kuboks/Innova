@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-import ImagenLogin from "@/assets/placeholder.svg"
+import ImagenLogin from "@/assets/Login.jpg"
 import { useState } from "react"
 
 import axios from 'axios'
@@ -89,7 +89,7 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
             <img
               src={ImagenLogin}
               alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              className="absolute inset-0 h-full w-full object-cover pt-1 pb-1 pr-1 pl-1 dark:brightness-[0.2] dark:grayscale"
             />
           </div>
         </CardContent>

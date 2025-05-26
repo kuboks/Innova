@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-import ImagenLogin from "@/assets/placeholder.svg"
+import ImagenLogin from "@/assets/Login.jpg"
 import axios from "axios"
 
 export function SignupPage({ className, ...props }: React.ComponentProps<"div">) {

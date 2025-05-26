@@ -4,7 +4,8 @@ import { AuthLayout } from "./auth/layout/AuthLayout"
 import { LoginPage } from "./auth/pages/LoginPage"
 import { SignupPage } from "./auth/pages/SignupPage"
 import HomeLayout from "./home/layout/HomeLayout"
-import ResetPassword from "./auth/pages/ResetPassword"
+import {ResetPassword} from "./auth/pages/ResetPassword"
+import { NewPassword } from "./auth/pages/NewPassword"
 
 export const AppRouter = () => {
   
@@ -17,6 +18,7 @@ export const AppRouter = () => {
           <Route index element={<LoginPage/>} />
           <Route path="/auth/signup" element={<SignupPage />} />
           <Route path="/auth/recuperar-password" element={<ResetPassword/>}/>
+          <Route path="/auth/newpassword" element={<NewPassword/>}/>
         </Route>
         <Route path="*" element={<Navigate to="/"/>} />
       </Routes>

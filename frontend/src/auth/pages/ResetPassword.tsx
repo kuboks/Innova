@@ -6,12 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import axios from "axios"
 
-export default function Component() {
-    const [usuarioEmail, setUsuarioEmail] = useState("");
+export function ResetPassword() {
+    const [email, setEmail] = useState("");
     const handleEnviarCorreo= async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
         event.preventDefault();
-        
+        try {
+        const response = await axios.post(import.meta.env.VITE_URL_API_FORGOTPASSWORD,{
+          Email: email
+        }, { withCredentials: true });
+
+        if(response.data.success){
+          window.location.href = '/auth';
+        }
+      } catch (error) {
+        console.error("Error en el consumo de api", error);
+      }
     }
 
   return (
@@ -33,7 +44,7 @@ export default function Component() {
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input id="email" type="email" placeholder="tu@ejemplo.com" className="pl-10"
-                    value={usuarioEmail} onChange={(e) => setUsuarioEmail(e.target.value)} required />
+                    value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
             </div>
             <Button type="submit" className="w-full">
