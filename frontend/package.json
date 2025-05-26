@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "serve dist -s -n -L -p $PORT"
+    "start": "serve dist -s -n -L -p 8088"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.10",
@@ -24,6 +24,7 @@
     "react-dom": "^19.1.0",
     "react-google-recaptcha": "^3.1.0",
     "react-router": "^7.6.0",
+    "serve": "^14.2.4",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7"
   },

@@ -30,9 +30,6 @@ export function VideoCardComponent({ video }: VideoCardProps) {
   const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation()
     if(isFavorite===false){
-
-    }
-    if(isFavorite===true){
       if(!sessionStorage.getItem('idUsuario')){
         alert('Debes iniciar sesion primero');
         return;
