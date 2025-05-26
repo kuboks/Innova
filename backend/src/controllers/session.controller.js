@@ -1,6 +1,7 @@
 import { getConnection } from '../database/connection.js'
 import mssql from 'mssql'
 import jwt from 'jsonwebtoken'
+import { logger } from '../config/logger.js'
 import mailer from 'nodemailer'
 import crypto from 'crypto'
 import {
@@ -58,6 +59,12 @@ export const postLogin = async (req, res) => {
         return res.status(401).json(mensajeRes(false, 'La contraseña no coincide', null, null))
     } catch (error) {
         const statusCode = error.response ? error.response.status : 500;
+        logger.error({
+            message: 'Error en postLogin',
+            error: error.message, // Mensaje del error
+            stack: error.stack,  // Pila del error para depuración
+            route: req.originalUrl // Ruta donde ocurrió el error
+        });
         return res.status(statusCode).json(mensajeRes(false, 'Error al inciar sesion', false, error.message))
     }
 }
@@ -96,6 +103,12 @@ export const postNewUser = async (req, res) => {
         return res.status(400).json(mensajeRes(false, 'No se ha creado el jugador', null, null))
     } catch (error) {
         const statusCode = error.response ? error.response.status : 500;
+        logger.error({
+            message: 'Error en postNewUser',
+            error: error.message, // Mensaje del error
+            stack: error.stack,  // Pila del error para depuración
+            route: req.originalUrl // Ruta donde ocurrió el error
+        });
         return res.status(statusCode).json(mensajeRes(false, 'No se ha creado el jugador', null, error.message))
     }
 }
@@ -119,6 +132,12 @@ export const authSession = (req, res) => {
         
     } catch (error) {
         const statusCode = error.response ? error.response.status : 500;
+        logger.error({
+            message: 'Error en authSession',
+            error: error.message, // Mensaje del error
+            stack: error.stack,  // Pila del error para depuración
+            route: req.originalUrl // Ruta donde ocurrió el error
+        });
         return res.status(statusCode).json(mensajeRes(false, 'Error al autenticar', null, error.message))
     }
 }
