@@ -19,7 +19,7 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
 
   const handleLogout = async() => {
     try {
-        const response = await axios.post("http://localhost:8880/api/logout",{}, { withCredentials: true });
+        const response = await axios.post(import.meta.env.VITE_URL_API_LOGOUT,{}, { withCredentials: true });
         console.log(response.data)
         if(response.data.success){
           localStorage.clear();

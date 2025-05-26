@@ -42,7 +42,7 @@ const handleSignup = async (event: React.FormEvent<HTMLFormElement>): Promise<vo
         alert("La contraseña no es la misma");
         return;
       }
-      const response = await axios.post("http://localhost:8880/api/signup", {
+      const response = await axios.post(import.meta.env.VITE_URL_API_SIGNUP, {
         Nombre: nombre,
         Apellidos: apellidos,
         NombreUsuario: usuario,

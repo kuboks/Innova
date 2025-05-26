@@ -29,7 +29,7 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
       return;
     }
     try {
-      const response = await axios.post("http://localhost:8880/api/login", {
+      const response = await axios.post(import.meta.env.VITE_URL_API_LOGIN, {
         UsuarioEmail: usuarioEmail,
         Contraseña: password
       }, {

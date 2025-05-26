@@ -45,7 +45,7 @@ export function VideoGridComponent({ searchQuery = "" }) {
       let response;
       setLoading(true);
       try {
-        response = await axios.get("http://localhost:8880/api/videoshome", {
+        response = await axios.get(import.meta.env.VITE_URL_API_VIDEOSHOME, {
         params: {
           part: "snippet",
           type: 'video',
@@ -84,7 +84,7 @@ export function VideoGridComponent({ searchQuery = "" }) {
       let response;
     setLoading(true);
     try {
-      response = await axios.get("http://localhost:8880/api/search", {
+      response = await axios.get(import.meta.env.VITE_URL_API_SEARCH, {
         params: {
           part: "snippet",
           q: searchQuery,
