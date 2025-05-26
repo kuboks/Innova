@@ -7,9 +7,10 @@ import { useNavigate } from "react-router"
 import axios from "axios"
 
 interface HeaderComponentProps {
+  searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
-export function HeaderComponent({ setSearchQuery }: HeaderComponentProps) {
+export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentProps) {
   const navigate = useNavigate();
 
   const handleLogin = () => {
@@ -53,7 +54,7 @@ export function HeaderComponent({ setSearchQuery }: HeaderComponentProps) {
             <Input
               type="search"
               placeholder="Search videos..."
-              // value={setSearchQuery}
+              value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 w-full"
             />

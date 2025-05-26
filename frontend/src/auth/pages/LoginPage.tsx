@@ -14,7 +14,7 @@ import ReCAPTCHA from "react-google-recaptcha"
 
 export function LoginPage({ className, ...props }: React.ComponentProps<"div">, ) {
   
-  const [email, setEmail] = useState("");
+  const [usuarioEmail, setUsuarioEmail] = useState("");
   const [password, setPassword] = useState("");
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null)
   const apiKey = import.meta.env.VITE_KEY_CAPTCHA;
@@ -30,12 +30,11 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
     }
     try {
       const response = await axios.post("http://localhost:8880/api/login", {
-        NombreUsuario: email,
+        UsuarioEmail: usuarioEmail,
         Contraseña: password
       }, {
         withCredentials: true
       })
-      console.log(response.data.message)
       if(response.data.success){
         window.location.href = '/';
       }
@@ -56,14 +55,14 @@ export function LoginPage({ className, ...props }: React.ComponentProps<"div">, 
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Usuario o correo</Label>
-                <Input id="email" type="text" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input id="email" type="text" value={usuarioEmail} onChange={(e) => setUsuarioEmail(e.target.value)} required />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a href="#" className="ml-auto text-sm underline-offset-2 hover:underline">
+                  <Link to="/auth/recuperar-password" className="ml-auto text-sm underline-offset-2 hover:underline">
                     Olvidaste tu contraseña?
-                  </a>
+                  </Link>
                 </div>
                 <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>

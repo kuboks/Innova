@@ -28,7 +28,16 @@ export function VideoCardComponent({ video }: VideoCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
 
   const toggleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent card click when clicking favorite button
+    e.stopPropagation()
+    if(isFavorite===false){
+
+    }
+    if(isFavorite===true){
+      if(!sessionStorage.getItem('idUsuario')){
+        alert('Debes iniciar sesion primero');
+        return;
+      }
+    }
     setIsFavorite(!isFavorite)
   }
 
