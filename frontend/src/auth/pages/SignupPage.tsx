@@ -111,7 +111,7 @@ const handleSignup = async (event: React.FormEvent<HTMLFormElement>): Promise<vo
               </Button>
               <div className="text-center text-sm">
                 Ya tienes una cuenta?{" "}
-                <Link to="/auth/login" className="underline underline-offset-4">
+                <Link to="/auth" className="underline underline-offset-4">
                   Log in
                 </Link>
               </div>

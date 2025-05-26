@@ -39,9 +39,9 @@ export function HeaderComponent({searchQuery, setSearchQuery }: HeaderComponentP
           </Button>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">IB</span>
+              <span className="text-primary-foreground font-bold text-sm">IT</span>
             </div>
-            <span className="font-bold text-lg hidden sm:block">Innovatube</span>
+            <span className="font-bold text-lg hidden sm:block">InnovaTube</span>
           </div>
         </div>
 
