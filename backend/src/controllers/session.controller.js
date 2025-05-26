@@ -11,6 +11,10 @@ import {
 //Estandarizacion de respuesta a peticiones http
 import { mensajeRes } from '../utils/respuesta.js'
 
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 export const postLogin = async (req, res) => {
     try {
         const validacion = await validarLogin(req.body);
@@ -168,16 +172,40 @@ export const logout = (req, res) => {
 export const forgotPassword = async (req, res) => {
     try {
         const pool = await getConnection();
-        result = await pool.request()
-            .input('Email', mssql.VarChar, req.body.Email)
-            .query('SELECT correo FROM Usuarios WHERE correo= @Email');
-        if(result.rowsAffected[0] === 0){
-            return res.json(mensajeRes(true, 'Correo enviado', result.recordset, null))
-        }
+        const email= req.body.Email
+        const result = await pool.request()
+            .input('Email', email)
+            .query('SELECT correo, id_usuario FROM Usuarios WHERE correo= @Email');
+        if(result.rowsAffected[0] !== 0){
+            const tokenRecuperacion = crypto.randomBytes(32).toString('hex');
+            const expiracion = new Date(Date.now() + 3600000);
+            const resRecuperacion= await pool.request()
+                .input('id_usuario', mssql.Int, result.recordset[0].id_usuario)
+                .input('token', mssql.VarChar, tokenRecuperacion)
+                .input('expires_at', mssql.DateTime, expiracion)
+                .query(`INSERT INTO PasswordResetTokens (id_usuario, token, expires_at)
+                        VALUES (@id_usuario, @token, @expires_at);`);
 
-        
+            const envio = mailer.createTransport({ 
+                service: 'gmail',
+                auth: {
+                    user: 'brayanaguilar.ks88@gmail.com',
+                    pass: process.env.PASSWORD_NODEMAILER
+                    }
+                });
+
+            const resetLink = `https://lucid-elegance-production.up.railway.app/newpassword?token=${tokenRecuperacion}`;
+            await envio.sendMail({
+                from: '"Soporte" <brayanaguilar.ks88@gmail.com>',
+                to: email,
+                subject: 'Recupera tu contraseña',
+                html: `<p>Recibimos una solicitud para recuperar tu contraseña. Ingresa al siguiente enlace para restablecerla:</p>
+                    <a href="${resetLink}">Restablecer contraseña</a>
+                    <p>Si no solicitaste este cambio, ignora este correo.</p>`
+        });
+        }
+        return res.json(mensajeRes(true, 'Correo enviado', null, null))
     } catch (error) {
-        const statusCode = error.response ? error.response.status : 500;
-        return res.status(statusCode).json(mensajeRes(false, 'Error al cerrar sesion', null, error.message))
+        return res.status(500).json(mensajeRes(false, 'Error al enviar correo', null, error.message))
     }
 }
