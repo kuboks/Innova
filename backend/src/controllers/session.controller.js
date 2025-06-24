@@ -1,130 +1,81 @@
-import { getConnection } from '../database/connection.js'
-import mssql from 'mssql'
-import jwt from 'jsonwebtoken'
-import { logger } from '../config/logger.js'
-import mailer from 'nodemailer'
+import bcrypt from 'bcrypt'
 import crypto from 'crypto'
+import mailer from 'nodemailer'
+import dotenv from 'dotenv';
+
+import jwt from 'jsonwebtoken'
 import {
     validarLogin,
-    validarNewUser
+    validarNewUser,
+    validarReqBodyParcial
 } from '../schemas/session.schema.js'
-//Estandarizacion de respuesta a peticiones http
+import { Op } from "sequelize";
 import { mensajeRes } from '../utils/respuesta.js'
-
-import dotenv from 'dotenv';
+import { models, sequelize } from '../database/sequelizeConnection.js'
+import {login} from '../services/usuario.services.js'
 
 dotenv.config();
 
-export const postLogin = async (req, res) => {
+export const postLogin = async (req, res, next) => {
     try {
-        const validacion = await validarLogin(req.body);
-        const regex= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        logger.info({
-                method: 'Uso de postLogin',
-                message: 'Se hizo una peticion de login',
-                data: req.body,
-                route: req.originalUrl
-            })
-        if (validacion.error) {
-            const mensaje = JSON.parse(validacion.error.message)
-            return res.status(400).json(mensajeRes(false, mensaje[0].message, null, null))
-        }
-
-        const pool = await getConnection();
-        let result=null;
-        const password = crypto.createHash('sha256').update(req.body.Contraseña).digest('hex');
-        const usuarioEmail= req.body.UsuarioEmail;
-
-        if(regex.test(usuarioEmail)){
-            result = await pool.request()
-            .input('UsuarioEmail', mssql.VarChar, usuarioEmail)
-            .query('SELECT id_usuario, nombre_usuario, contraseña FROM Usuarios WHERE correo= @UsuarioEmail');
-        }else{
-            result = await pool.request()
-            .input('UsuarioEmail', mssql.VarChar, usuarioEmail)
-            .query('SELECT id_usuario, nombre_usuario, contraseña FROM Usuarios WHERE nombre_usuario= @UsuarioEmail');
-        }
-
-        if (result.rowsAffected[0] === 0) {
-            return res.status(404).json(mensajeRes(false, 'No hay una cuenta con el usuario o correo ingresado', null, null))
-        }
-
-        if (password === result.recordset[0].contraseña) {
-            const user = {
-                id_usuario: result.recordset[0].id_usuario,
-                usuario: result.recordset[0].nombre_usuario,
-            };
-
-            const token = jwt.sign(user, process.env.CLAVEWT, { expiresIn: '2h' });
+        const {token, respuesta}= await login(req.body);
 
             res.cookie('token', token, {
-                httpOnly: true,
-                secure: true,
-                sameSite: 'Strict'
-            });
-            
-            return res.json(mensajeRes(true, 'Login Correcto', result.recordset, null))
-        }
-        return res.status(401).json(mensajeRes(false, 'La contraseña no coincide', null, null))
-    } catch (error) {
-        const statusCode = error.response ? error.response.status : 500;
-        logger.error({
-            message: 'Error en postLogin',
-            error: error.message, // Mensaje del error
-            data: req.body,     // Datos de la peticion
-            stack: error.stack,  // Pila del error para depuración
-            route: req.originalUrl // Ruta donde ocurrió el error
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Strict',
+            path: '/'
         });
-        return res.status(statusCode).json(mensajeRes(false, 'Error al inciar sesion', false, error.message))
+
+        return res.json(respuesta)
+    } catch (error) {
+        next(error)
     }
 }
 
-export const postNewUser = async (req, res) => {
+export const postNewUser = async (req, res, next) => {
     try {
         const validacion = await validarNewUser(req.body)
         if (validacion.error) {
-            const mensaje = JSON.parse(validacion.error.message)
-            return res.status(400).json(mensajeRes(false, mensaje[0].message, null, null))
+            const mensaje = JSON.parse(validacion.error.message);
+            throw { statusCode: 400, message: mensaje[0].message };
         }
-        const password= crypto.createHash('sha256').update(req.body.Contraseña).digest('hex')
+        const {Nombre, Apellidos, NombreUsuario, Email, Contraseña} = req.body
+        const rondas = 10;
+        const hashedContraseña = await bcrypt.hash(Contraseña, rondas);
 
-        const pool = await getConnection();
-        const checkUser = await pool.request()
-            .input('Email', mssql.VarChar, req.body.Email)
-            .query('SELECT * FROM Usuarios WHERE correo = @Email');
+        const usuario = await models.usuarios.findOne({
+            where: {
+                [Op.or]: [
+                    { nombre_usuario: NombreUsuario },
+                    { correo: Email }
+                ]
+            },
+            attributes: ["nombre_usuario", "correo"]
+        });
 
-        if (checkUser.recordset.length > 0) {
-            return res.status(409).json(
-                mensajeRes(false, 'Ya existe una cuenta con el correo ingresado', null, null)
-            )
+        if(usuario){
+            throw { statusCode: 400, message: 'El nombre de usuario o correo ingresado ya existen' };
         }
 
-        const result = await pool.request()
-            .input('Nombre', mssql.VarChar, req.body.Nombre)
-            .input('Apellidos', mssql.VarChar, req.body.Apellidos)
-            .input('NombreUsuario', mssql.VarChar, req.body.NombreUsuario)
-            .input('Email', mssql.VarChar, req.body.Email)
-            .input('Password', mssql.VarChar, password)
-            .query('INSERT INTO Usuarios (nombre, apellido, nombre_usuario, correo, contraseña)VALUES(@Nombre, @Apellidos, @NombreUsuario, @Email, @Password)');
+        const nuevoUsuario = await models.usuarios.create({
+            nombre: Nombre,
+            apellido: Apellidos,
+            nombre_usuario: NombreUsuario,
+            correo: Email,
+            contraseña: hashedContraseña
+        });
 
-        if (result.rowsAffected) {
-            return res.json(mensajeRes(true, 'Usuario creado', { Nombreusuario: req.body.NombreUsuario }, null))
+        if (nuevoUsuario) {
+            return res.json(mensajeRes(true, 'Usuario creado', null, null))
         }
         return res.status(400).json(mensajeRes(false, 'No se ha creado el jugador', null, null))
     } catch (error) {
-        const statusCode = error.response ? error.response.status : 500;
-        logger.error({
-            message: 'Error en postNewUser',
-            error: error.message, // Mensaje del error
-            data: req.body,     // Datos de la peticion
-            stack: error.stack,  // Pila del error para depuración
-            route: req.originalUrl // Ruta donde ocurrió el error
-        });
-        return res.status(statusCode).json(mensajeRes(false, 'No se ha creado el jugador', null, error.message))
+        next(error)
     }
 }
 
-export const authSession = (req, res) => {
+export const authSession = (req, res, next) => {
     try {
         const token = req.cookies.token;
         let data= {};
@@ -142,70 +93,120 @@ export const authSession = (req, res) => {
         });
         
     } catch (error) {
-        const statusCode = error.response ? error.response.status : 500;
-        logger.error({
-            message: 'Error en authSession',
-            error: error.message, // Mensaje del error
-            data: req.body,     // Datos de la peticion
-            stack: error.stack,  // Pila del error para depuración
-            route: req.originalUrl // Ruta donde ocurrió el error
-        });
-        return res.status(statusCode).json(mensajeRes(false, 'Error al autenticar', null, error.message))
+        next(error)
     }
 }
 
-export const logout = (req, res) => {
+export const logout = (req, res, next) => {
     try {
         const token = req.cookies.token;
-
-        if (!token) {
-            return res.status(400).json(mensajeRes(false, 'No hay sesion activa', null, null))
-        }
-        res.clearCookie("token", {path: '/'});
-        return res.json(mensajeRes(true, 'Sesión cerrada exitosamente', null, null))
+        return !token
+        ? res.status(400).json(mensajeRes(false, 'No hay sesion activa', null, null))
+        : res.clearCookie("token", {path: '/'}) && res.json(mensajeRes(true, 'Sesión cerrada exitosamente', null, null))
     } catch (error) {
-        const statusCode = error.response ? error.response.status : 500;
-        return res.status(statusCode).json(mensajeRes(false, 'Error al cerrar sesion', null, error.message))
+        next(error)
     }
 }
 
-export const forgotPassword = async (req, res) => {
+export const postForgotPassword = async (req, res, next) => {
     try {
-        const pool = await getConnection();
-        const email= req.body.Email
-        const result = await pool.request()
-            .input('Email', email)
-            .query('SELECT correo, id_usuario FROM Usuarios WHERE correo= @Email');
-        if(result.rowsAffected[0] !== 0){
-            const tokenRecuperacion = crypto.randomBytes(32).toString('hex');
-            const expiracion = new Date(Date.now() + 3600000);
-            const resRecuperacion= await pool.request()
-                .input('id_usuario', mssql.Int, result.recordset[0].id_usuario)
-                .input('token', mssql.VarChar, tokenRecuperacion)
-                .input('expires_at', mssql.DateTime, expiracion)
-                .query(`INSERT INTO PasswordResetTokens (id_usuario, token, expires_at)
-                        VALUES (@id_usuario, @token, @expires_at);`);
+        const validacion = await validarReqBodyParcial(req.body);
 
-            const envio = mailer.createTransport({ 
-                service: 'gmail',
-                auth: {
-                    user: 'brayanaguilar.ks88@gmail.com',
-                    pass: process.env.PASSWORD_NODEMAILER
-                    }
-                });
-
-            const resetLink = `https://lucid-elegance-production.up.railway.app/newpassword?token=${tokenRecuperacion}`;
-            await envio.sendMail({
-                from: '"Soporte" <brayanaguilar.ks88@gmail.com>',
-                to: email,
-                subject: 'Recupera tu contraseña',
-                html: `<p>Recibimos una solicitud para recuperar tu contraseña. Ingresa al siguiente enlace para restablecerla:</p>
-                    <a href="${resetLink}">Restablecer contraseña</a>
-                    <p>Si no solicitaste este cambio, ignora este correo.</p>`
-        });
+        if (validacion.error) {
+            const mensaje = JSON.parse(validacion.error.message);
+            throw { statusCode: 400, message: mensaje[0].message };
         }
-        return res.json(mensajeRes(true, 'Correo enviado', null, null))
+
+        const email = req.body.Email;
+
+        const usuario = await models.usuarios.findOne({
+            where: { correo: email },
+            attributes: ['id_usuario', 'correo']
+        });
+
+        if (!usuario) {
+            throw { statusCode: 404, message: 'No se encontró una cuenta con ese correo' };
+        }
+
+        const tokenRecuperacion = crypto.randomBytes(32).toString('hex');
+        const expiracion = new Date(Date.now() + 3600000); // 1 hora
+
+        const registrarTokenRecuperacion= await models.password_reset_tokens.create({
+            id_usuario: usuario.id_usuario,
+            token: tokenRecuperacion,
+            expires_at: expiracion
+        });
+
+        if (!registrarTokenRecuperacion) {
+            return res.json(mensajeRes(false, 'Token no registrado', null, null))
+        }
+
+        // Configurar el servicio de correo
+        const envio = mailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'brayanaguilar.ks88@gmail.com',
+                pass: process.env.PASSWORD_NODEMAILER
+            }
+        });
+
+        const resetLink = `https://lucid-elegance-production.up.railway.app/newpassword?token=${tokenRecuperacion}`;
+
+        const infoEnvioCorreo= await envio.sendMail({
+            from: '"Soporte" <brayanaguilar.ks88@gmail.com>',
+            to: email,
+            subject: 'Recupera tu contraseña',
+            html: `<p>Recibimos una solicitud para recuperar tu contraseña. Ingresa al siguiente enlace para restablecerla:</p>
+                   <a href="${resetLink}">Restablecer contraseña</a>
+                   <p>Si no solicitaste este cambio, ignora este correo.</p>`
+        });
+
+        if (!infoEnvioCorreo.messageId) {
+        throw { statusCode: 500, message: 'Error al enviar el correo de recuperación' };
+    }
+        return res.json(mensajeRes(true, 'Correo enviado', null, null));
     } catch (error) {
-        return res.status(500).json(mensajeRes(false, 'Error al enviar correo', null, error.message))
+        next(error)
+    }
+}
+
+export const postNewPassword = async (req, res, next) =>{
+    const transaction = await sequelize.transaction();
+    try {      
+        const {token, contraseña} = req.body
+        const saltRounds = 10;
+        const hashedContraseña= await bcrypt.hash(contraseña, saltRounds)
+
+        const consultaToken = await models.password_reset_tokens.findOne({
+            where: {
+                token: token
+            },
+            attributes:["id_token", "id_usuario", "expires_at", "used"]
+        })
+
+        const tokenInvalido= (new Date(consultaToken.expires_at) <= new Date()) || Boolean(consultaToken.used)
+        if(!consultaToken || tokenInvalido){
+            throw { statusCode: 401, message: 'No se puede cambiar de contraseña' };
+        }
+
+        const updateContraseña= await models.usuarios.update({contraseña: hashedContraseña},{
+            where: {id_usuario: consultaToken.id_usuario},
+            transaction,
+        })
+
+        const updateTokenUsed= await models.password_reset_tokens.update({used: 1},{
+                where: {id_token: consultaToken.id_token},
+                transaction
+            })
+
+        if (updateContraseña[0] === 0 || updateTokenUsed[0] === 0) {
+            throw { statusCode: 401, message: 'Ocurrió un error al cambiar la contraseña' };
+        }
+
+        await transaction.commit();
+        return res.json(mensajeRes(true, 'Contraseña cambiada exitosamente', null, null))
+    } catch (error) {
+        await transaction.rollback();
+        next(error)
     }
 }

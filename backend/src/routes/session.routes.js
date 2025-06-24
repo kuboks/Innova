@@ -7,7 +7,8 @@ import {
     postNewUser,
     authSession,
     logout, 
-    forgotPassword
+    postForgotPassword,
+    postNewPassword
 
 } from '../controllers/session.controller.js';
 
@@ -19,8 +20,8 @@ loginRoutes.get("/session", authSession);
 
 loginRoutes.post("/logout", logout);
 
-loginRoutes.post("/forgot-password", forgotPassword);
+loginRoutes.post("/forgot-password", postForgotPassword);
 
-
+loginRoutes.post("/new-password", postNewPassword);
 
 export default loginRoutes

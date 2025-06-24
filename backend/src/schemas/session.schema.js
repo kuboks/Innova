@@ -37,6 +37,11 @@ const loginSchema= zod.object({
 export function validarNewUser(object){
     return newUserSchema.safeParseAsync(object)
 
-}export function validarLogin(object){
-    return loginSchema.partial().safeParseAsync(object)
+}
+export function validarLogin(object){
+    return loginSchema.safeParseAsync(object)
+}
+
+export function validarReqBodyParcial(object){
+    return newUserSchema.partial().safeParseAsync(object)
 }
