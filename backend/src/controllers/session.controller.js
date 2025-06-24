@@ -26,7 +26,6 @@ export const postLogin = async (req, res, next) => {
             sameSite: 'Strict',
             path: '/'
         });
-
         return res.json(respuesta)
     } catch (error) {
         next(error)
